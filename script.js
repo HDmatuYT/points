@@ -1,66 +1,73 @@
-let totalPoints = 0;
+const add1Button = document.getElementById("add1");
+const add5Button = document.getElementById("add5");
+const add10Button = document.getElementById("add10");
+const resetButton = document.getElementById("reset");
+const subtractButton = document.getElementById("subtract");
+const totalPointsDiv = document.getElementById("totalPoints");
 
-// API URL
-const API_URL = 'https://points-ntev.onrender.com/points';
+// Initialize points value
+let points = 0;
 
-// Lae punktid serverist või localStorage-st
-async function loadPoints() {
-    // Proovi laadida punktid localStorage-st
-    const storedPoints = localStorage.getItem('totalPoints');
-    if (storedPoints !== null) {
-        totalPoints = parseInt(storedPoints, 10);  // Konverteerime stringi numbriks
-        updateDisplay();
-    }
-
-    // Lae punktid serverist
-    try {
-        const response = await fetch(API_URL);
-        const data = await response.text();  // Eeldame, et vastus on lihtsalt tekst
-        totalPoints = parseInt(data, 10) || 0; // Kui server tagastab midagi, siis uuendame
-        updateDisplay();
-    } catch (error) {
-        console.error('Punktide laadimine ebaõnnestus:', error);
-    }
+// Function to update the displayed points
+function updatePoints() {
+    totalPointsDiv.textContent = `Kokku: ${points} punkti`;
 }
 
-// Saada punktid serverisse ja salvestada localStorage-sse
-async function savePoints() {
-    try {
-        await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ totalPoints }),
-        });
+// Event listeners for button clicks
+add1Button.addEventListener("click", () => {
+    points += 1;
+    updatePoints();
+    updatePointsInAPI();
+});
 
-        // Salvestame punktid ka localStorage-sse
-        localStorage.setItem('totalPoints', totalPoints);
-    } catch (error) {
-        console.error('Punktide salvestamine ebaõnnestus:', error);
-    }
+add5Button.addEventListener("click", () => {
+    points += 5;
+    updatePoints();
+    updatePointsInAPI();
+});
+
+add10Button.addEventListener("click", () => {
+    points += 10;
+    updatePoints();
+    updatePointsInAPI();
+});
+
+resetButton.addEventListener("click", () => {
+    points = 0;
+    updatePoints();
+    updatePointsInAPI();
+});
+
+subtractButton.addEventListener("click", () => {
+    points -= 1;
+    updatePoints();
+    updatePointsInAPI();
+});
+
+// Function to update points in the API
+function updatePointsInAPI() {
+    fetch("https://points-ntev.onrender.com/points", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ points: points }),
+        mode: "no-cors",  // Set this to disable CORS check
+    })
+    .then(response => {
+        // You won't be able to read the response body with `no-cors`
+        console.log("Points updated");
+    })
+    .catch(error => console.error("Error updating points:", error));
 }
 
-document.getElementById('add1').addEventListener('click', () => changePoints(1));
-document.getElementById('add5').addEventListener('click', () => changePoints(5));
-document.getElementById('add10').addEventListener('click', () => changePoints(10));
-document.getElementById('reset').addEventListener('click', resetPoints);
-document.getElementById('subtract').addEventListener('click', () => changePoints(-1));
-
-function changePoints(points) {
-    totalPoints += points;
-    if (totalPoints < 0) totalPoints = 0;
-    updateDisplay();
-    savePoints();
-}
-
-function resetPoints() {
-    totalPoints = 0;
-    updateDisplay();
-    savePoints();
-}
-
-function updateDisplay() {
-    document.getElementById('totalPoints').textContent = `Kokku: ${totalPoints} punkti`;
-}
-
-// Lae punktid alguses
-loadPoints();
+// Load the current points from the API when the page loads
+window.addEventListener("load", () => {
+    fetch("https://points-ntev.onrender.com/points")
+        .then(response => response.json())
+        .then(data => {
+            points = data.points;
+            updatePoints();
+        })
+        .catch(error => console.error("Error loading points:", error));
+});
