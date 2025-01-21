@@ -1,21 +1,29 @@
 let totalPoints = 0;
 
-// API URL (muuda see oma serveri URL-iks)
-const API_URL = 'https://punktide-server.onrender.com/points';
+// API URL
+const API_URL = 'https://points-ntev.onrender.com/points';
 
-// Lae punktid serverist
+// Lae punktid serverist või localStorage-st
 async function loadPoints() {
+    // Proovi laadida punktid localStorage-st
+    const storedPoints = localStorage.getItem('totalPoints');
+    if (storedPoints !== null) {
+        totalPoints = parseInt(storedPoints, 10);  // Konverteerime stringi numbriks
+        updateDisplay();
+    }
+
+    // Lae punktid serverist
     try {
         const response = await fetch(API_URL);
-        const data = await response.json();
-        totalPoints = data.totalPoints || 0;
+        const data = await response.text();  // Eeldame, et vastus on lihtsalt tekst
+        totalPoints = parseInt(data, 10) || 0; // Kui server tagastab midagi, siis uuendame
         updateDisplay();
     } catch (error) {
         console.error('Punktide laadimine ebaõnnestus:', error);
     }
 }
 
-// Saada punktid serverisse
+// Saada punktid serverisse ja salvestada localStorage-sse
 async function savePoints() {
     try {
         await fetch(API_URL, {
@@ -23,6 +31,9 @@ async function savePoints() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ totalPoints }),
         });
+
+        // Salvestame punktid ka localStorage-sse
+        localStorage.setItem('totalPoints', totalPoints);
     } catch (error) {
         console.error('Punktide salvestamine ebaõnnestus:', error);
     }
