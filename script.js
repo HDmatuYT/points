@@ -1,10 +1,12 @@
 const add1Button = document.getElementById("add1");
-const add5Button = document.getElementById("add3");
-const add10Button = document.getElementById("add4");
-const add05button = document.getElementById("add0.5")
+const add3Button = document.getElementById("add3");
+const add4Button = document.getElementById("add4");
+const add05Button = document.getElementById("add05");
+const subtract3Button = document.getElementById("subtract3");
 const resetButton = document.getElementById("reset");
-const subtractButton = document.getElementById("subtract3");
+const cashoutButton = document.getElementById("cashout");
 const totalPointsDiv = document.getElementById("totalPoints");
+const rateTextDiv = document.getElementById("rateText");
 
 let points = 0;
 
@@ -20,7 +22,7 @@ function updatePointsInAPI() {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ points: points }),  // Veendu, et see sobib API ootustega
+        body: JSON.stringify({ points: points }),
     })
     .then(response => {
         if (!response.ok) {
@@ -56,14 +58,26 @@ add1Button.addEventListener("click", () => {
     updatePointsInAPI();
 });
 
-add5Button.addEventListener("click", () => {
-    points += 5;
+add3Button.addEventListener("click", () => {
+    points += 3;
     updatePoints();
     updatePointsInAPI();
 });
 
-add10Button.addEventListener("click", () => {
-    points += 10;
+add4Button.addEventListener("click", () => {
+    points += 4;
+    updatePoints();
+    updatePointsInAPI();
+});
+
+add05Button.addEventListener("click", () => {
+    points += 0.5;
+    updatePoints();
+    updatePointsInAPI();
+});
+
+subtract3Button.addEventListener("click", () => {
+    points -= 3;
     updatePoints();
     updatePointsInAPI();
 });
@@ -74,8 +88,29 @@ resetButton.addEventListener("click", () => {
     updatePointsInAPI();
 });
 
-subtractButton.addEventListener("click", () => {
-    points -= 1;
-    updatePoints();
-    updatePointsInAPI();
+// Cashout nupp
+cashoutButton.addEventListener("click", () => {
+    // Arvutame, kui palju € saab maksimaalselt välja võtta
+    const maxEuros = Math.floor(points / 3);  // 1 € = 3 punkti, nii et jagame punktid 3-ga
+    const maxPoints = maxEuros * 3;  // Arvutame vastava punktide arvu, mis võib välja võtta
+
+    // Kuvatakse maksimaalne võimalik summa eurodes
+    const euros = parseFloat(prompt(`Sisesta summa eurodes, mille soovid välja võtta. Sa saad maksimaalselt välja võtta ${maxEuros} € (${maxPoints} punkti).`));
+    
+    if (!isNaN(euros) && euros > 0 && euros <= maxEuros) {
+        const requiredPoints = euros * 3;  // 3 punkti = 1 €
+
+        if (points >= requiredPoints) {
+            points -= requiredPoints;  // Lahuta vajalik arv punkte
+            alert(`Oled välja võtnud ${euros} € (koos vastava punktide lahutamisega).`);
+            updatePoints();  // Uuenda kuvatavad punktid
+            updatePointsInAPI();  // Uuenda punkte API-s
+        } else {
+            alert("Sul ei ole piisavalt punkte selle summa välja võtmiseks.");
+        }
+    } else if (euros > maxEuros) {
+        alert(`Sa ei saa välja võtta rohkem kui ${maxEuros} €.`);
+    } else {
+        alert("Palun sisesta kehtiv summa.");
+    }
 });
