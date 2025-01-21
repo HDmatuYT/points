@@ -1,8 +1,8 @@
 const add1Button = document.getElementById("add1");
-const add5Button = document.getElementById("add5");
-const add10Button = document.getElementById("add10");
+const add5Button = document.getElementById("add3");
+const add10Button = document.getElementById("add4");
 const resetButton = document.getElementById("reset");
-const subtractButton = document.getElementById("subtract");
+const subtractButton = document.getElementById("subtract3");
 const totalPointsDiv = document.getElementById("totalPoints");
 
 // Initialize points value
@@ -51,14 +51,20 @@ function updatePointsInAPI() {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ points: points }),
-        mode: "no-cors",  // Set this to disable CORS check
+        body: JSON.stringify({ points: points }),  // Ensure the key matches what the API expects
     })
     .then(response => {
-        // You won't be able to read the response body with `no-cors`
-        console.log("Points updated");
+        if (!response.ok) {
+            return response.text().then(text => { throw new Error(text); });
+        }
+        return response.json();
     })
-    .catch(error => console.error("Error updating points:", error));
+    .then(data => {
+        console.log("Points updated:", data);
+    })
+    .catch(error => {
+        console.error("Error updating points:", error);
+    });
 }
 
 // Load the current points from the API when the page loads
@@ -69,5 +75,7 @@ window.addEventListener("load", () => {
             points = data.points;
             updatePoints();
         })
-        .catch(error => console.error("Error loading points:", error));
+        .catch(error => {
+            console.error("Error loading points:", error);
+        });
 });
