@@ -36,7 +36,7 @@ app.post("/cashout", (req, res) => {
     if (cashoutPoints <= points) {
         points -= cashoutPoints;  // Lahuta vajalikud punktid
         console.log(`Cashout logitud: ${euros} € / ${cashoutPoints} punkti`);
-        res.status(200).json({ message: "Cashout logitud", euros, points: cashoutPoints });
+        res.status(200).json({ message: "Cashout logitud", euros, points });
     } else {
         res.status(400).json({ error: "Piisavalt punkte ei ole" });
     }

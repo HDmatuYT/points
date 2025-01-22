@@ -88,12 +88,13 @@ resetButton.addEventListener("click", () => {
     updatePointsInAPI();
 });
 
+
 // Cashout nupp
 cashoutButton.addEventListener("click", () => {
     const euros = parseFloat(prompt("Sisesta summa eurodes, mille soovid välja võtta."));
     
     if (!isNaN(euros) && euros > 0 && euros <= points) {
-        points -= euros;  // Lahuta vajalik arv punkte (üks punkt = üks euro)
+        points -= euros;  // Lahuta vajalik arv punkte (ühesugune punktide ja eurode suhe)
         alert(`Oled välja võtnud ${euros} € (koos vastava punktide lahutamisega).`);
         updatePoints();  // Uuenda kuvatavad punktid
         updatePointsInAPI();  // Uuenda punkte API-s
