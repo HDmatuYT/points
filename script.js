@@ -90,27 +90,35 @@ resetButton.addEventListener("click", () => {
 
 // Cashout nupp
 cashoutButton.addEventListener("click", () => {
-    // Arvutame, kui palju € saab maksimaalselt välja võtta
-    const maxEuros = Math.floor(points / 3);  // 1 € = 3 punkti, nii et jagame punktid 3-ga
-    const maxPoints = maxEuros * 3;  // Arvutame vastava punktide arvu, mis võib välja võtta
-
-    // Kuvatakse maksimaalne võimalik summa eurodes
-    const euros = parseFloat(prompt(`Sisesta summa eurodes, mille soovid välja võtta. Sa saad maksimaalselt välja võtta ${maxEuros} € (${maxPoints} punkti).`));
+    const euros = parseFloat(prompt("Sisesta summa eurodes, mille soovid välja võtta."));
     
-    if (!isNaN(euros) && euros > 0 && euros <= maxEuros) {
-        const requiredPoints = euros * 3;  // 3 punkti = 1 €
+    if (!isNaN(euros) && euros > 0 && euros <= points) {
+        points -= euros;  // Lahuta vajalik arv punkte (üks punkt = üks euro)
+        alert(`Oled välja võtnud ${euros} € (koos vastava punktide lahutamisega).`);
+        updatePoints();  // Uuenda kuvatavad punktid
+        updatePointsInAPI();  // Uuenda punkte API-s
 
-        if (points >= requiredPoints) {
-            points -= requiredPoints;  // Lahuta vajalik arv punkte
-            alert(`Oled välja võtnud ${euros} € (koos vastava punktide lahutamisega).`);
-            updatePoints();  // Uuenda kuvatavad punktid
-            updatePointsInAPI();  // Uuenda punkte API-s
-        } else {
-            alert("Sul ei ole piisavalt punkte selle summa välja võtmiseks.");
-        }
-    } else if (euros > maxEuros) {
-        alert(`Sa ei saa välja võtta rohkem kui ${maxEuros} €.`);
+        // Logi cashout API-sse
+        fetch("https://points-ntev.onrender.com/cashout", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ euros: euros, points: euros }),  // Üks punkt = üks euro
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => { throw new Error(text); });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Cashout logitud:", data);
+        })
+        .catch(error => {
+            console.error("Viga cashouti logimisel:", error);
+        });
     } else {
-        alert("Palun sisesta kehtiv summa.");
+        alert("Palun sisesta kehtiv summa, mille soovid välja võtta.");
     }
 });
