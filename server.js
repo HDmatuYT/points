@@ -1,30 +1,33 @@
 const express = require("express");
+const cors = require("cors");
 const app = express();
 const port = 3000;
 
-app.use(express.json()); // Et JSON päringud töötaks
+// Use CORS to allow requests from your frontend
+app.use(cors());
 
-let points = 0; // Testimiseks lihtne muutuja
+// Middleware to parse JSON requests
+app.use(express.json());
 
-// Lõpp-punkt punktide saamiseks
+// Points storage (in-memory for simplicity)
+let points = 0;
+
+// GET endpoint to fetch points
 app.get("/points", (req, res) => {
-    res.json({ points: points });
+    res.json({ points });
 });
 
-// Lõpp-punkt punktide uuendamiseks
+// POST endpoint to update points
 app.post("/points", (req, res) => {
-    points = req.body.points;
-    res.json({ message: "Punktid uuendatud", points: points });
+    const { points: newPoints } = req.body;
+    if (typeof newPoints === "number") {
+        points = newPoints;
+        res.json({ points });
+    } else {
+        res.status(400).json({ error: "Invalid points value" });
+    }
 });
 
-// Lõpp-punkt cashout logimiseks
-app.post("/cashout-log", (req, res) => {
-    const { points, timestamp } = req.body;
-    console.log(`Cashout log: ${points} punkti, timestamp: ${timestamp}`);
-    res.json({ message: "Cashout log salvestatud" });
-});
-
-// Käivita server
 app.listen(port, () => {
-    console.log(`Server töötab aadressil http://localhost:${port}`);
+    console.log(`Server is running on http://localhost:${port}`);
 });

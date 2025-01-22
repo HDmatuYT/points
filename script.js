@@ -4,8 +4,9 @@ const add4Button = document.getElementById("add4");
 const add05Button = document.getElementById("add05");
 const subtract3Button = document.getElementById("subtract3");
 const resetButton = document.getElementById("reset");
-const cashoutButton = document.getElementById("cashout"); // Ainult üks kord deklareeritud
+const cashoutButton = document.getElementById("cashout");
 const totalPointsDiv = document.getElementById("totalPoints");
+const rateTextDiv = document.getElementById("rateText");
 
 let points = 0;
 
@@ -76,13 +77,9 @@ add05Button.addEventListener("click", () => {
 });
 
 subtract3Button.addEventListener("click", () => {
-    if (points >= 3) {
-        points -= 3;
-        updatePoints();
-        updatePointsInAPI();
-    } else {
-        alert("Sul ei ole piisavalt punkte.");
-    }
+    points -= 3;
+    updatePoints();
+    updatePointsInAPI();
 });
 
 resetButton.addEventListener("click", () => {
@@ -91,40 +88,29 @@ resetButton.addEventListener("click", () => {
     updatePointsInAPI();
 });
 
-// Funktsioon cashout logi andmebaasi saatmiseks
-function logCashoutToDatabase(points) {
-    fetch("https://points-ntev.onrender.com/cashout-log", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            points: points,                 // Kasutaja punktide kogus
-            timestamp: new Date().toISOString(), // Aeg, millal cashout toimus
-        }),
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.text().then(text => { throw new Error(text); });
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log("Cashout log edukalt salvestatud:", data);
-        alert("Teie cashout logi on salvestatud andmebaasi.");
-    })
-    .catch(error => {
-        console.error("Viga cashout logi salvestamisel:", error);
-        alert("Cashout logi salvestamisel tekkis viga. Palun proovi uuesti.");
-    });
-}
-
+// Cashout nupp
 cashoutButton.addEventListener("click", () => {
-    // Logi cashout andmebaasi
-    logCashoutToDatabase(points);
+    // Arvutame, kui palju € saab maksimaalselt välja võtta
+    const maxEuros = Math.floor(points / 3);  // 1 € = 3 punkti, nii et jagame punktid 3-ga
+    const maxPoints = maxEuros * 3;  // Arvutame vastava punktide arvu, mis võib välja võtta
 
-    // Lisame vajadusel täiendava tegevuse, nt reseti või muu tegevuse:
-    points = 0;
-    updatePoints();  // Uuenda punkte
-    updatePointsInAPI(); // Saada uued punktid API-sse
+    // Kuvatakse maksimaalne võimalik summa eurodes
+    const euros = parseFloat(prompt(`Sisesta summa eurodes, mille soovid välja võtta. Sa saad maksimaalselt välja võtta ${maxEuros} € (${maxPoints} punkti).`));
+    
+    if (!isNaN(euros) && euros > 0 && euros <= maxEuros) {
+        const requiredPoints = euros * 3;  // 3 punkti = 1 €
+
+        if (points >= requiredPoints) {
+            points -= requiredPoints;  // Lahuta vajalik arv punkte
+            alert(`Oled välja võtnud ${euros} € (koos vastava punktide lahutamisega).`);
+            updatePoints();  // Uuenda kuvatavad punktid
+            updatePointsInAPI();  // Uuenda punkte API-s
+        } else {
+            alert("Sul ei ole piisavalt punkte selle summa välja võtmiseks.");
+        }
+    } else if (euros > maxEuros) {
+        alert(`Sa ei saa välja võtta rohkem kui ${maxEuros} €.`);
+    } else {
+        alert("Palun sisesta kehtiv summa.");
+    }
 });
